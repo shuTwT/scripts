@@ -23,9 +23,9 @@ const CONFIG = {
 };
 
 // ===================== 引入依赖（ESM格式）=====================
-import axios from "axios";
-import mqtt from "mqtt";
-import querystring from "node:querystring"; // ESM方式引入内置模块
+const axios = require("axios");
+const mqtt = require("mqtt");
+const querystring = require("node:querystring"); // ESM方式引入内置模块
 
 async function getConfig() {
   const [res1,res2] = await Promise.all([
