@@ -28,15 +28,16 @@ const mqtt = require("mqtt");
 const querystring = require("node:querystring"); // ESM方式引入内置模块
 
 async function getConfig() {
-  const [res1,res2] = await Promise.all([
+  const [res1, res2] = await Promise.all([
     QLAPI.getEnvs({
       searchValue: "mqtt",
     }),
     QLAPI.getEnvs({
       searchValue: "sunriseyny",
     }),
-  ])
+  ]);
   res1.data.forEach((item) => {
+    console.log(`环境变量:[name=${item.name},value=${item.value}`);
     if (item.name === "mqtt_broker") {
       CONFIG.mqtt.host = item.value;
     } else if (item.name === "mqtt_user") {
@@ -46,6 +47,7 @@ async function getConfig() {
     }
   });
   res2.data.forEach((item) => {
+    console.log(`环境变量:[name=${item.name},value=${item.value}`);
     if (item.name === "sunriseyny_openId") {
       CONFIG.openId = item.value;
     } else if (item.name === "sunriseyny_customerId") {
@@ -61,26 +63,26 @@ const userAgent =
   "Mozilla/5.0 (Linux; Android 14; HUAWEI ALN-AL00 Build/HUAWEIALN-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.0.0 Mobile Safari/537.36 MicroMessenger/8.0.50(0x18003231) NetType/WIFI Language/zh_CN";
 const referer = "https://www.sunriseyny.cn/ems-wpa-personal/month-bill.html";
 
-// 构建请求头和请求体
-const headers = {
-  "Content-Type": "application/x-www-form-urlencoded",
-  "User-Agent": userAgent,
-  openId: CONFIG.openId,
-  source: "2",
-  Referer: referer,
-};
-
-const bodyObj = {
-  customerId: CONFIG.customerId,
-  energyType: CONFIG.energyType,
-};
-
 // ===================== 功能函数 =====================
 /**
  * 获取电费数据（axios版）
  */
 async function getElectricityCost() {
   try {
+    // 构建请求头和请求体
+    const headers = {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": userAgent,
+      openId: CONFIG.openId,
+      source: "2",
+      Referer: referer,
+    };
+    console.log("构建请求头",headers)
+    const bodyObj = {
+      customerId: CONFIG.customerId,
+      energyType: CONFIG.energyType,
+    };
+    console.log("构建请求体",bodyObj)
     console.log("开始请求电费API...");
 
     const response = await axios({
@@ -133,14 +135,16 @@ async function getElectricityCost() {
  * 发送数据到MQTT（ESM版）
  */
 async function sendToMQTT(data) {
-  const client = mqtt.connect({
+    const mqttOptions = {
     host: CONFIG.mqtt.host,
     port: CONFIG.mqtt.port,
     username: CONFIG.mqtt.username,
     password: CONFIG.mqtt.password,
     keepalive: 60,
     connectTimeout: 5000,
-  });
+  }
+  console.log("mqtt配置",mqttOptions)
+  const client = mqtt.connect(mqttOptions);
 
   return new Promise((resolve, reject) => {
     client.on("connect", () => {
