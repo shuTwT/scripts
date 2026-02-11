@@ -11,5 +11,8 @@
     "javascript"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "qinglong-api": "^1.2.0"
+  }
 }
